@@ -15,7 +15,8 @@ test('appearance follows system or saved choice and remembers explicit changes',
     setItem: (key, value) => stored.set(key, value),
   }
   globalThis.window = { matchMedia: () => scheme }
-  globalThis.document = { documentElement: { dataset: {}, style: { setProperty() {} } } }
+  const properties = new Map()
+  globalThis.document = { documentElement: { dataset: {}, style: { setProperty: (key, value) => properties.set(key, value), removeProperty: (key) => properties.delete(key) } } }
 
   const { theme, setTheme } = await import('../src/settings.js')
   assert.equal(theme.value, 'system')
@@ -42,4 +43,23 @@ test('appearance follows system or saved choice and remembers explicit changes',
   const restored = await import('../src/settings.js?restore')
   assert.equal(restored.theme.value, 'light')
   assert.equal(document.documentElement.dataset.theme, 'light')
+
+  restored.setMenuLayout('columns', '3')
+  restored.setMenuLayout('cardWidth', '350')
+  restored.setMenuLayout('cardHeight', '240')
+  restored.setMenuLayout('imageWidth', '160')
+  restored.setMenuLayout('imageHeight', '120')
+  assert.equal(properties.get('--menu-columns'), '3')
+  assert.equal(properties.get('--menu-card-width'), '350px')
+  assert.equal(properties.get('--menu-image-height'), '120px')
+  restored.setMenuLayout('columns', '5')
+  restored.setMenuLayout('cardWidth', '-1')
+  assert.equal(restored.menuLayout.value.columns, 3)
+  assert.equal(restored.menuLayout.value.cardWidth, 350)
+
+  const layoutRestored = await import('../src/settings.js?layout-restore')
+  assert.deepEqual({ ...layoutRestored.menuLayout.value }, { columns: 3, cardWidth: 350, cardHeight: 240, imageWidth: 160, imageHeight: 120 })
+  layoutRestored.setMenuLayout('imageHeight', '')
+  assert.equal(properties.has('--menu-image-height'), false)
+  assert.equal(JSON.parse(stored.get('sabrey-menu-layout')).imageHeight, '')
 })

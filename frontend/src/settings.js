@@ -17,6 +17,31 @@ export function setFontSize(value) {
 
 setFontSize(fontSize.value)
 
+const layoutFields = {
+  columns: { min: 1, max: 4, property: '--menu-columns', unit: '' },
+  cardWidth: { min: 80, max: 1200, property: '--menu-card-width', unit: 'px' },
+  cardHeight: { min: 80, max: 1200, property: '--menu-card-height', unit: 'px' },
+  imageWidth: { min: 20, max: 1200, property: '--menu-image-width', unit: 'px' },
+  imageHeight: { min: 20, max: 1200, property: '--menu-image-height', unit: 'px' },
+}
+
+let savedLayout = {}
+try { savedLayout = JSON.parse(localStorage.getItem('sabrey-menu-layout') || '{}') || {} } catch { /* Use the template defaults. */ }
+export const menuLayout = ref(Object.fromEntries(Object.keys(layoutFields).map((key) => [key, ''])))
+
+export function setMenuLayout(key, value) {
+  const field = layoutFields[key]
+  if (!field) return
+  const number = Number(value)
+  if (value !== '' && (!Number.isInteger(number) || number < field.min || number > field.max)) return
+  menuLayout.value[key] = value === '' ? '' : number
+  if (value === '') document.documentElement.style.removeProperty(field.property)
+  else document.documentElement.style.setProperty(field.property, `${number}${field.unit}`)
+  try { localStorage.setItem('sabrey-menu-layout', JSON.stringify(menuLayout.value)) } catch { /* Keep the setting for this visit. */ }
+}
+
+for (const key of Object.keys(layoutFields)) setMenuLayout(key, savedLayout[key] ?? '')
+
 let savedTheme
 try { savedTheme = localStorage.getItem('sabrey-theme') } catch { /* Storage may be unavailable. */ }
 const themes = ['system', 'light', 'dark']

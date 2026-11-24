@@ -52,7 +52,7 @@ class RateLimitTests(unittest.TestCase):
     def test_registration_limit_covers_both_url_versions(self):
         with TestClient(app, client=("198.51.100.12", 5000)) as client:
             for _ in range(5):
-                self.assertEqual(client.post("/api/auth/register", json={}).status_code, 422)
+                self.assertEqual(client.post("/api/auth/register", json={}).status_code, 401)
             response = client.post("/v1/api/auth/register", json={})
             self.assertEqual(response.status_code, 429)
             self.assertGreater(int(response.headers["Retry-After"]), 0)

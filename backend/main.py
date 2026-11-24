@@ -1,8 +1,8 @@
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, Request
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.cors import CORSMiddleware
-from app.dependencies import Db
+from app.dependencies import Db, require_auth_for_writes
 from app.config import settings
 from app.api.v1.router import router as v1_router
 from app.api.v1.routers import public
@@ -10,7 +10,7 @@ from app.services import public as public_service
 from app.rate_limit import RateLimitMiddleware
 
 def create_app() -> FastAPI:
-    app = FastAPI(title="QR Menu API")
+    app = FastAPI(title="QR Menu API", dependencies=[Depends(require_auth_for_writes)])
     app.add_middleware(RateLimitMiddleware)
     app.add_middleware(
         CORSMiddleware,
@@ -41,6 +41,13 @@ def create_app() -> FastAPI:
         if slug:
             return public_service.get_menu(db, slug)
         return {"message": "QR Menu API is running"}
+
+    if serve_frontend:
+        @app.get("/login", include_in_schema=False)
+        @app.get("/admin", include_in_schema=False)
+        @app.get("/admin/{path:path}", include_in_schema=False)
+        def frontend_route():
+            return FileResponse(frontend_dist / "index.html")
 
     return app
 

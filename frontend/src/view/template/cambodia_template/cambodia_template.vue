@@ -146,13 +146,13 @@ input::placeholder { color: #9ca3af; }
 .category-heading h2 { display: inline-block; }
 .category-heading h2::after { content: ''; display: block; height: 4px; margin-top: 8px; border-radius: 999px; background: #285a42; }
 h2 { font-size: 1.375em; font-weight: 700; }
-.item-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-.item { min-width: 0; min-height: 116px; display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 18px; border: 1px solid #e5e7eb; border-radius: 8px; }
+.item-list { display: grid; grid-template-columns: repeat(var(--menu-columns, 2), minmax(0, 1fr)); gap: 12px; }
+.item { width: min(100%, var(--menu-card-width, 100%)); justify-self: center; min-width: 0; min-height: var(--menu-card-height, 116px); display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 18px; border: 1px solid #e5e7eb; border-radius: 8px; }
 .item-details { min-width: 0; }
 .item h3 { font-size: 1em; font-weight: 600; overflow-wrap: anywhere; }
 .item strong { display: block; margin-top: 12px; font-size: .9375em; color: #285a42; }
-.item-image { width: 92px; height: 92px; flex-shrink: 0; object-fit: cover; border-radius: 6px; background: #f3f4f6; }
-.item-avatar { width: 92px; height: 92px; flex-shrink: 0; display: grid; place-items: center; border-radius: 6px; background: #edf3ee; color: #285a42; font-size: 1.75em; font-weight: 600; }
+.item-image { width: min(60%, var(--menu-image-width, 92px)); height: var(--menu-image-height, 92px); flex-shrink: 0; object-fit: cover; border-radius: 6px; background: #f3f4f6; }
+.item-avatar { width: min(60%, var(--menu-image-width, 92px)); height: var(--menu-image-height, 92px); flex-shrink: 0; display: grid; place-items: center; border-radius: 6px; background: #edf3ee; color: #285a42; font-size: 1.75em; font-weight: 600; }
 .empty { color: #6b7280; margin-top: 24px; }
 .container.is-empty { display: flex; flex-direction: column; }
 .empty-menu { flex: 1; min-height: 240px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
@@ -165,7 +165,7 @@ button { padding: 11px 16px; border: 1px solid #285a42; border-radius: 6px; back
 .shop-form button { margin-top: 16px; }
 .state-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
 .secondary-button { background: #fff; color: #285a42; }
-@media (max-width: 640px) { .container { padding: 32px 20px 60px; } .item-list, .skeleton-items { grid-template-columns: 1fr; } .item-image, .item-avatar, .skeleton-image { width: 76px; height: 76px; } }
+@media (max-width: 640px) { .container { padding: 32px 20px 60px; } .item-list { grid-template-columns: repeat(min(var(--menu-columns, 1), 2), minmax(0, 1fr)); } .skeleton-items { grid-template-columns: 1fr; } .item-image, .item-avatar { width: min(60%, var(--menu-image-width, 76px)); height: var(--menu-image-height, 76px); } .skeleton-image { width: 76px; height: 76px; } }
 .cambodia-theme { color: #423526; background-color: #fcfaf6; background-image: url('../../../assets/khmer-pattern.svg'); background-repeat: repeat; background-size: 96px 96px; }
 .cambodia-theme .container { max-width: 1100px; padding-top: 0; }
 .cambodia-theme .skeleton-banner { margin-top: 20px; }
@@ -181,15 +181,15 @@ button { padding: 11px 16px; border: 1px solid #285a42; border-radius: 6px; back
 .cambodia-theme .category-heading { display: flex; align-items: center; justify-content: center; gap: 14px; padding: 0; margin-bottom: 18px; text-align: center; }
 .cambodia-theme .category-heading h2 { color: #493a29; font-size: 1.2em; font-weight: 700; }
 .cambodia-theme .category-heading h2::after { display: block; height: 3px; margin-top: 8px; border-radius: 999px; background: #b89350; }
-.cambodia-theme .item-list { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
-.cambodia-theme .item { flex-direction: column-reverse; align-items: stretch; justify-content: flex-end; gap: 0; min-height: 0; padding: 0; overflow: hidden; border-color: #eee7dc; border-radius: 12px; background: #fff; box-shadow: 0 2px 10px rgb(67 47 18 / 4%); }
-.cambodia-theme .item-image, .cambodia-theme .item-avatar { width: 100%; height: auto; aspect-ratio: 1 / 1; border-radius: 0; background: #faf8f3; }
+.cambodia-theme .item-list { grid-template-columns: repeat(var(--menu-columns, 4), minmax(0, 1fr)); gap: 16px; }
+.cambodia-theme .item { flex-direction: column-reverse; align-items: stretch; justify-content: flex-end; gap: 0; min-height: var(--menu-card-height, 0px); padding: 0; overflow: hidden; border-color: #eee7dc; border-radius: 12px; background: #fff; box-shadow: 0 2px 10px rgb(67 47 18 / 4%); }
+.cambodia-theme .item-image, .cambodia-theme .item-avatar { align-self: center; width: min(100%, var(--menu-image-width, 100%)); height: var(--menu-image-height, auto); aspect-ratio: 1 / 1; border-radius: 0; background: #faf8f3; }
 .cambodia-theme .item-image { object-fit: contain; }
 .cambodia-theme .item-avatar { color: #ab9169; background: #f6f1e7; font-size: 2.5em; }
 .cambodia-theme .item-details { flex: 1; padding: 16px; background: #fff; }
 .cambodia-theme .item h3 { color: #453a2d; line-height: 1.4; }
 .cambodia-theme .item strong { margin-top: 8px; color: #8a672d; }
-@media (max-width: 700px) { .cambodia-theme .item-list { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; } .cambodia-theme .item-details { padding: 12px; } }
+@media (max-width: 700px) { .cambodia-theme .item-list { grid-template-columns: repeat(min(var(--menu-columns, 2), 2), minmax(0, 1fr)); gap: 10px; } .cambodia-theme .item-details { padding: 12px; } }
 html[data-theme='dark'] .cambodia-theme { color: #f0e5d2; background-color: #000; background-image: radial-gradient(rgb(211 180 114 / 10%) 1px, transparent 1px); background-size: 24px 24px; }
 html[data-theme='dark'] .cambodia-theme .menu-toolbar { background: #1e211a; border-color: #564c37; }
 html[data-theme='dark'] .cambodia-theme .menu-controls.is-open { background: #272b21; }

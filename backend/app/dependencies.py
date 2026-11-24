@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import Depends, HTTPException
+from fastapi import Depends, HTTPException, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
@@ -19,3 +19,16 @@ def get_current_user(db: Db, credentials: Annotated[HTTPAuthorizationCredentials
 
 
 CurrentUser = Annotated[User, Depends(get_current_user)]
+
+
+def require_auth_for_writes(
+    request: Request,
+    db: Db,
+    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer)],
+) -> None:
+    """Require a valid user for mutations, except for obtaining a token."""
+    if request.method not in {"POST", "PUT", "PATCH", "DELETE"}:
+        return
+    if request.method == "POST" and request.url.path in {"/api/auth/login", "/v1/api/auth/login"}:
+        return
+    get_current_user(db, credentials)

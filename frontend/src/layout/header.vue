@@ -2,7 +2,7 @@
 import { useI18n } from 'vue-i18n'
 import { inject, onMounted, onUnmounted, ref, watch } from 'vue'
 import { setLocale } from '../i18n'
-import { fontSize, setFontSize, theme, setTheme } from '../settings'
+import { fontSize, setFontSize, menuLayout, setMenuLayout, theme, setTheme } from '../settings'
 import LanguageFlag from './language_flag.vue'
 
 const { locale } = useI18n({ useScope: 'global' })
@@ -21,6 +21,7 @@ const { state: templateState, currentTemplate, hasMenu, signIn, signOut, saveTem
 const email = ref('')
 const password = ref('')
 const selectedTemplate = ref('default_template')
+const loginUrl = `/login${window.location.search}`
 
 function openSettings() {
   dropdown.value.open = false
@@ -97,6 +98,7 @@ onUnmounted(() => document.removeEventListener('pointerdown', closeOnOutsideClic
             </div>
           </details>
           <button class="open-settings" type="button" @click="openSettings">{{ $t('settings') }}</button>
+          <a class="login-link" :href="loginUrl">{{ $t('signIn') }}</a>
         </div>
       </details>
     </div>
@@ -113,6 +115,22 @@ onUnmounted(() => document.removeEventListener('pointerdown', closeOnOutsideClic
       <div class="font-heading"><label for="font-size">{{ $t('fontSize') }}</label><output for="font-size">{{ fontSize }}%</output></div>
       <input id="font-size" class="font-slider" type="range" min="80" max="150" step="5" :value="fontSize" :aria-valuetext="`${fontSize}%`" @input="setFontSize($event.target.value)" />
       <div class="font-limits" aria-hidden="true"><span>80%</span><span>150%</span></div>
+      <section class="layout-settings" aria-labelledby="layout-title">
+        <h3 id="layout-title">{{ $t('menuLayout') }}</h3>
+        <p>{{ $t('layoutHelp') }}</p>
+        <label for="menu-columns">{{ $t('columns') }}</label>
+        <select id="menu-columns" :value="menuLayout.columns" @change="setMenuLayout('columns', $event.target.value)">
+          <option value="">{{ $t('automatic') }}</option>
+          <option v-for="count in 4" :key="count" :value="count">{{ count }}</option>
+        </select>
+        <div class="layout-fields">
+          <div v-for="field in ['cardWidth', 'cardHeight', 'imageWidth', 'imageHeight']" :key="field">
+            <label :for="field">{{ $t(field) }} (px)</label>
+            <input :id="field" type="number" :min="field.startsWith('card') ? 80 : 20" max="1200" step="1" :value="menuLayout[field]" :placeholder="$t('automatic')" @change="setMenuLayout(field, $event.target.value); $event.target.value = menuLayout[field]" />
+          </div>
+        </div>
+        <button type="button" class="reset-layout" @click="['columns', 'cardWidth', 'cardHeight', 'imageWidth', 'imageHeight'].forEach(key => setMenuLayout(key, ''))">{{ $t('resetLayout') }}</button>
+      </section>
       <div v-if="hasMenu" class="template-settings">
         <h3>{{ $t('templateSettings') }}</h3>
         <p v-if="templateState.error" class="template-error" role="alert">{{ $t(templateState.error) }}</p>
@@ -159,6 +177,8 @@ onUnmounted(() => document.removeEventListener('pointerdown', closeOnOutsideClic
 .setting-label { display: block; margin: 0 0 7px; color: #374151; font-size: .875rem; font-weight: 600; }
 .settings-button:focus-visible, .font-slider:focus-visible { outline: 3px solid #d59d5e; outline-offset: 3px; }
 .open-settings { width: 100%; margin-top: 12px; padding: 10px; border: 0; border-radius: 6px; text-align: left; color: #374151; background: #f3f4f6; font: inherit; font-size: .875rem; cursor: pointer; }
+.login-link { display: block; margin-top: 8px; padding: 10px; border-radius: 6px; color: #285a42; font-size: .875rem; text-decoration: none; }
+.login-link:hover { background: #edf3ee; }
 .settings-dialog { position: fixed; inset: 0; margin: auto; width: min(400px, calc(100vw - 32px)); height: fit-content; max-height: calc(100dvh - 32px); overflow-y: auto; padding: 24px; border: 1px solid #e5e7eb; border-radius: 12px; color: #1f2937; background: white; box-shadow: 0 15px 40px rgb(0 0 0 / 18%); }
 .settings-dialog::backdrop { background: rgb(0 0 0 / 40%); }
 .dialog-heading, .font-heading, .font-limits { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
@@ -169,6 +189,13 @@ onUnmounted(() => document.removeEventListener('pointerdown', closeOnOutsideClic
 .appearance-setting select { width: 100%; padding: 9px 10px; border: 1px solid #d1d5db; border-radius: 6px; color: #1f2937; background: #fff; font: inherit; font-weight: 400; }
 .font-slider { width: 100%; margin: 20px 0 8px; accent-color: #285a42; cursor: pointer; }
 .font-limits { color: #6b7280; font-size: .75rem; }
+.layout-settings { margin-top: 24px; padding-top: 20px; border-top: 1px solid #e5e7eb; }
+.layout-settings h3 { margin: 0 0 8px; font-size: 1rem; }
+.layout-settings p { margin: 0 0 12px; color: #6b7280; font-size: .875rem; line-height: 1.5; }
+.layout-settings label { display: block; margin-bottom: 6px; font-size: .875rem; font-weight: 600; }
+.layout-settings input, .layout-settings select { width: 100%; padding: 9px 10px; border: 1px solid #d1d5db; border-radius: 6px; color: #1f2937; background: #fff; font: inherit; font-size: .875rem; }
+.layout-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 12px; }
+.reset-layout { margin-top: 12px; padding: 9px 14px; border: 1px solid #d1d5db; border-radius: 6px; color: #374151; background: #fff; font: inherit; font-size: .875rem; cursor: pointer; }
 .template-settings { margin-top: 24px; padding-top: 20px; border-top: 1px solid #e5e7eb; }
 .template-settings h3 { margin: 0 0 10px; font-size: 1rem; font-weight: 700; }
 .template-settings p { margin: 0 0 12px; color: #6b7280; font-size: .875rem; line-height: 1.5; }
@@ -231,4 +258,9 @@ html[data-theme='dark'] .sign-out { color: #d4ead9; background: #24352a; border-
 html[data-theme='dark'] .show-qr { color: #e3ebe3; background: #24352a; border-color: #72967b; }
 html[data-theme='dark'] .qr-display a { color: #b4e5be; }
 html[data-theme='dark'] .font-slider { accent-color: #92c79e; }
+html[data-theme='dark'] .login-link { color: #b4e5be; }
+html[data-theme='dark'] .login-link:hover { background: #334239; }
+html[data-theme='dark'] .layout-settings { border-color: #435449; }
+html[data-theme='dark'] .layout-settings p { color: #c0ccc2; }
+html[data-theme='dark'] .layout-settings input, html[data-theme='dark'] .layout-settings select, html[data-theme='dark'] .reset-layout { color: #edf1ed; background: #17211b; border-color: #526354; }
 </style>

@@ -1,17 +1,21 @@
 <script setup>
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRoute, useRouter } from 'vue-router'
 import { api, ApiError } from '../../services/api-services'
+import { setAdminSession, safeAdminRedirect } from '../../services/admin-session'
 import { setLocale } from '../../i18n'
 import '../../settings'
 
 const { locale } = useI18n({ useScope: 'global' })
+const route = useRoute()
+const router = useRouter()
 const email = ref('')
 const password = ref('')
 const showPassword = ref(false)
 const busy = ref(false)
-const error = ref('')
-const token = ref('')
+const error = ref(route.query.sessionError ? 'templateRequestFailed' : '')
+const menuUrl = route.query.shop ? `/?shop=${encodeURIComponent(route.query.shop)}` : '/'
 
 async function signIn() {
   if (busy.value) return
@@ -25,8 +29,9 @@ async function signIn() {
   busy.value = true
   try {
     const result = await api.login(email.value.trim(), password.value)
-    token.value = result.access_token
+    setAdminSession(result.access_token)
     password.value = ''
+    await router.replace(safeAdminRedirect(route.query.redirect))
   } catch (cause) {
     if (cause instanceof ApiError && cause.status === 401) error.value = 'templateLoginFailed'
     else if (cause instanceof ApiError && cause.status === 429) error.value = 'templateRateLimited'
@@ -36,17 +41,12 @@ async function signIn() {
   }
 }
 
-function signOut() {
-  token.value = ''
-  password.value = ''
-  error.value = ''
-}
 </script>
 
 <template>
   <main class="login-page">
     <header class="login-header">
-      <a class="brand" href="/" aria-label="Sabrey Menu">Sabrey<span> Menu</span></a>
+      <a class="brand" :href="menuUrl" aria-label="Sabrey Menu">Sabrey<span> Menu</span></a>
       <label class="language">
         <span class="sr-only">{{ $t('language') }}</span>
         <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.5 3.5 5.5 3.5 9s-1 6.5-3.5 9c-2.5-2.5-3.5-5.5-3.5-9S9.5 5.5 12 3Z"/></svg>
@@ -65,12 +65,7 @@ function signOut() {
         <h1 id="login-title">{{ $t('loginWelcome') }}</h1>
         <p class="intro">{{ $t('loginIntro') }}</p>
 
-        <div v-if="token" class="success" role="status">
-          <strong>{{ $t('loginSuccess') }}</strong>
-          <p>{{ $t('loginSessionNote') }}</p>
-          <button class="submit-button" type="button" @click="signOut">{{ $t('signOut') }}</button>
-        </div>
-        <form v-else class="login-form" @submit.prevent="signIn">
+        <form class="login-form" @submit.prevent="signIn">
           <p v-if="error" class="error" role="alert">{{ $t(error) }}</p>
           <div class="field">
             <label for="login-email">{{ $t('email') }}</label>
@@ -87,7 +82,7 @@ function signOut() {
           </div>
           <button class="submit-button" type="submit" :disabled="busy">{{ $t(busy ? 'pleaseWait' : 'signIn') }}</button>
         </form>
-        <a class="back-link" href="/">{{ $t('backToMenu') }}</a>
+        <a class="back-link" :href="menuUrl">{{ $t('backToMenu') }}</a>
       </div>
     </section>
   </main>

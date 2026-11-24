@@ -5,6 +5,7 @@ import DefaultTemplate from '../template/default_template/default_template.vue'
 import CosmeticTemplate from '../template/cosmetic_template/cosmetic_template.vue'
 import CambodiaTemplate from '../template/cambodia_template/cambodia_template.vue'
 import { api, ApiError } from '../../services/api-services'
+import ScrollToTop from '../../layout/scrolltotop.vue'
 
 // Register additional templates here; never import a path supplied by the API.
 const templates = new Map([
@@ -155,4 +156,5 @@ onUnmounted(() => { if (templateState.qrUrl) URL.revokeObjectURL(templateState.q
     @choose-shop="needsShop = true"
     @open-shop="openShop"
   />
+  <ScrollToTop />
 </template>

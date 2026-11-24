@@ -29,9 +29,12 @@ class FrontendHostingTests(unittest.TestCase):
                     page = client.get("/", headers=headers)
                     self.assertEqual(page.status_code, 200)
                     self.assertIn("shop frontend", page.text)
+                    for path in ("/login", "/admin", "/admin/banner", "/admin/menu-items"):
+                        self.assertIn("shop frontend", client.get(path, headers=headers).text)
                     self.assertEqual(client.get("/assets/app.js", headers=headers).status_code, 200)
                     self.assertEqual(client.get("/healthz", headers=headers).json(), {"status": "ok"})
                     self.assertEqual(client.post("/v1/api/auth/login", headers=headers, json={}).status_code, 422)
+                    self.assertEqual(client.get("/v1/api/missing", headers=headers).status_code, 404)
         finally:
             settings.serve_frontend = previous_enabled
             settings.frontend_dist_dir = previous_path

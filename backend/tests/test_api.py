@@ -1,7 +1,9 @@
 import os
 import unittest
+from datetime import datetime, timedelta, timezone
 from unittest.mock import patch
 
+import jwt
 os.environ.setdefault("DB_USER", "test_user")
 os.environ.setdefault("DB_PASSWORD", "test_password")
 
@@ -15,7 +17,10 @@ from sqlalchemy.pool import StaticPool
 from app.config import settings
 from app.database import Base, get_db
 from app.models.users import User
-from main import app
+from app.schemas.auth import RegisterRequest
+from app.services import auth
+from bootstrap_user import bootstrap_first_user
+from main import app, create_app
 
 
 class ApiTests(unittest.TestCase):
@@ -30,6 +35,10 @@ class ApiTests(unittest.TestCase):
 
         Base.metadata.create_all(self.engine)
         sessions = sessionmaker(bind=self.engine)
+        with sessions() as session:
+            bootstrap_first_user(session, RegisterRequest(name="Bootstrap", email="bootstrap@example.com", password="password123"))
+            token = auth.login(session, "bootstrap@example.com", "password123")
+        self.bootstrap = {"Authorization": "Bearer " + token}
 
         def override_db():
             with sessions() as session:
@@ -45,13 +54,43 @@ class ApiTests(unittest.TestCase):
         settings.secret_key = self.original_secret
 
     def register_and_login(self, email):
-        response = self.client.post("/api/auth/register", json={"name": "Test", "email": email, "password": "password123"})
+        response = self.client.post("/api/auth/register", headers=self.bootstrap, json={"name": "Test", "email": email, "password": "password123"})
         self.assertEqual(response.status_code, 201, response.text)
         self.assertNotIn("password_hash", response.json())
         user_id = response.json()["id"]
         response = self.client.post("/api/auth/login", json={"email": email, "password": "password123"})
         self.assertEqual(response.status_code, 200, response.text)
         return user_id, {"Authorization": "Bearer " + response.json()["access_token"]}
+
+    def test_all_write_methods_require_a_valid_login(self):
+        guarded_app = create_app()
+        guarded_app.dependency_overrides[get_db] = app.dependency_overrides[get_db]
+
+        @guarded_app.api_route("/test-write", methods=["GET", "POST", "PUT", "PATCH", "DELETE"])
+        def test_write():
+            return {"ok": True}
+
+        with TestClient(guarded_app, client=("198.51.100.52", 5000)) as client:
+            self.assertEqual(client.get("/test-write").status_code, 200)
+            now = datetime.now(timezone.utc)
+            expired = jwt.encode({"sub": "1", "iat": now - timedelta(hours=2), "exp": now - timedelta(hours=1)}, settings.secret_key, algorithm="HS256")
+            for method in ("POST", "PUT", "PATCH", "DELETE"):
+                with self.subTest(method=method):
+                    response = client.request(method, "/test-write")
+                    self.assertEqual(response.status_code, 401)
+                    self.assertEqual(response.headers["www-authenticate"], "Bearer")
+                    self.assertEqual(client.request(method, "/test-write", headers={"Authorization": "Bearer invalid"}).status_code, 401)
+                    self.assertEqual(client.request(method, "/test-write", headers={"Authorization": f"Bearer {expired}"}).status_code, 401)
+                    self.assertEqual(client.request(method, "/test-write", headers=self.bootstrap).status_code, 200)
+            for prefix in ("/api", "/v1/api"):
+                self.assertEqual(client.post(prefix + "/auth/register", json={}).status_code, 401)
+                self.assertEqual(client.post(prefix + "/auth/register", headers=self.bootstrap, json={}).status_code, 422)
+                self.assertEqual(client.post(prefix + "/auth/login", json={}).status_code, 422)
+
+    def test_bootstrap_rejects_databases_that_already_have_a_user(self):
+        with sessionmaker(bind=self.engine)() as session:
+            with self.assertRaisesRegex(ValueError, "already contains a user"):
+                bootstrap_first_user(session, RegisterRequest(name="Other", email="other@example.com", password="password123"))
 
     def test_tenant_menu_and_public_visibility(self):
         _, owner = self.register_and_login("owner@example.com")
@@ -148,14 +187,14 @@ class ApiTests(unittest.TestCase):
     def test_registration_creates_shop_and_qr_uses_public_domain(self):
         with TestClient(app, client=("198.51.100.50", 5000)) as client:
             body = {"name": "Sabrey", "email": "sabrey@example.com", "password": "password123"}
-            first = client.post("/v1/api/auth/register", json=body)
+            first = client.post("/v1/api/auth/register", headers=self.bootstrap, json=body)
             self.assertEqual(first.status_code, 201, first.text)
             tenant = first.json()["tenant"]
             self.assertEqual(tenant["slug"], "sabrey")
             self.assertEqual(tenant["menu_url"], "https://sabrey.sabrey.xyz")
             self.assertEqual(tenant["currency_code"], "KHR")
             self.assertNotIn("password_hash", first.json())
-            second = client.post("/v1/api/auth/register", json={**body, "email": "other@example.com", "currency_code": "USD"})
+            second = client.post("/v1/api/auth/register", headers=self.bootstrap, json={**body, "email": "other@example.com", "currency_code": "USD"})
             self.assertEqual(second.status_code, 201, second.text)
             self.assertEqual(second.json()["tenant"]["slug"], "sabrey-2")
             self.assertEqual(second.json()["tenant"]["currency_code"], "USD")
@@ -172,12 +211,12 @@ class ApiTests(unittest.TestCase):
             self.assertIn(b"<svg", qr.content)
             self.assertEqual(make_qr.call_args.args[0], "https://sabrey.sabrey.xyz")
             self.assertEqual(client.get(f"/v1/api/tenants/{second.json()['tenant']['id']}/qr-code", headers=headers).status_code, 404)
-            self.assertEqual(client.post("/v1/api/auth/register", json=body).status_code, 409)
+            self.assertEqual(client.post("/v1/api/auth/register", headers=self.bootstrap, json=body).status_code, 409)
 
     def test_registration_rolls_back_user_when_shop_creation_fails(self):
         with TestClient(app, client=("198.51.100.51", 5000)) as client:
             with patch("app.services.auth.add_for_owner", side_effect=IntegrityError("insert", {}, Exception("conflict"))):
-                response = client.post("/v1/api/auth/register", json={"name": "Failed Shop", "email": "failed@example.com", "password": "password123"})
+                response = client.post("/v1/api/auth/register", headers=self.bootstrap, json={"name": "Failed Shop", "email": "failed@example.com", "password": "password123"})
             self.assertEqual(response.status_code, 409)
         with sessionmaker(bind=self.engine)() as session:
             self.assertIsNone(session.scalar(select(User).where(User.email == "failed@example.com")))

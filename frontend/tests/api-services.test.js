@@ -30,6 +30,28 @@ test('authenticated requests send the right body and bearer token', async (t) =>
   assert.equal(call.options.method, 'PATCH')
   assert.equal(call.options.headers.Authorization, 'Bearer test-token')
   assert.deepEqual(JSON.parse(call.options.body), { display_template: 'cambodia_template' })
+  await api.register({ name: 'New owner' }, 'test-token')
+  assert.equal(call.url, '/v1/api/auth/register')
+  assert.equal(call.options.headers.Authorization, 'Bearer test-token')
+})
+
+test('admin list requests use the selected shop and bearer token', async (t) => {
+  const previousFetch = globalThis.fetch
+  t.after(() => { globalThis.fetch = previousFetch })
+  const calls = []
+  globalThis.fetch = async (url, options) => {
+    calls.push({ url, options })
+    return new Response('[]', { status: 200 })
+  }
+  await api.listBanners(42, 'token')
+  await api.listCategories(42, 'token')
+  await api.listMenuItems(42, 'token')
+  await api.listMembers(42, 'token')
+  assert.deepEqual(calls.map(({ url }) => url), [
+    '/v1/api/tenants/42/banners', '/v1/api/tenants/42/categories',
+    '/v1/api/tenants/42/menu-items', '/v1/api/tenants/42/members',
+  ])
+  for (const call of calls) assert.equal(call.options.headers.Authorization, 'Bearer token')
 })
 
 test('errors, QR responses and empty responses are handled', async (t) => {

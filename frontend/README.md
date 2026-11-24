@@ -14,6 +14,12 @@ To change a shop's template, open the header settings, choose Settings, sign in 
 
 After signing in under Settings, use **Show menu QR code** to display or download the shop's QR code. It encodes the tenant's public `https://<slug>.sabrey.xyz` URL; the public hostname must be deployed and configured before customers can use it.
 
+## Admin pages
+
+Sign in at `/login` or open `/admin/banner` to reach the admin panel. The sidebar contains read-only lists for banners, categories, menu items, shops, and shop members, plus the signed-in account profile. Select a shop in the top bar to change the data shown in shop-specific lists. The members endpoint is available only to shop owners; the API does not provide a list of all users.
+
+The admin access token is kept in session storage for the current browser tab and is validated with the API when the session is restored. Signing out clears it. For static hosting, configure SPA fallback to `index.html` for `/login` and `/admin/*`; the optional FastAPI frontend hosting handles these paths itself.
+
 ## Run locally
 
 Start the backend (see the backend README). Set `API_PROXY_TARGET` in `frontend/.env` to its origin, for example `http://127.0.0.1:8000`. You can copy `.env.example` to `.env` if you do not have one. Restart Vite after changing the value, then in this directory run:
@@ -29,4 +35,4 @@ To find your slug, sign in and call `GET /v1/api/tenants` with your bearer token
 
 ## Deploy
 
-Run `npm run build` and serve `dist` for `*.sabrey.xyz`. `frontend/.env.production` sets the public Render API origin used by the production build; update `VITE_API_ORIGIN` there or in the hosting provider's build environment if the backend address changes. `API_PROXY_TARGET` only configures the Vite development server. With a separate API origin, the frontend derives the shop slug from its `*.sabrey.xyz` hostname and requests `/v1/api/public/menus/<slug>` from FastAPI. A `?shop=<slug>` query selects a shop explicitly, for example `https://emenu.sabrey.xyz/?shop=sabrey`. The backend must allow the frontend origin through CORS. Without `VITE_API_ORIGIN`, configure a same-origin reverse proxy to forward `/v1/api/` to FastAPI while preserving the original `Host` header. Cloudflare wildcard DNS, frontend hosting and HTTPS must also be configured; building the frontend does not configure them.
+Run `npm run build` and serve `dist` for `*.sabrey.xyz`. Set `VITE_API_ORIGIN` to the Render API origin in the hosting provider's **build environment**, then rebuild and redeploy. On Cloudflare Workers Builds, use Settings > Build > Build variables and secrets; on Cloudflare Pages, use Settings > Environment variables. Vite embeds this value in the browser bundle, so it is public and must not contain credentials. `API_PROXY_TARGET` only configures the Vite development server. With a separate API origin, the frontend derives the shop slug from its `*.sabrey.xyz` hostname and requests `/v1/api/public/menus/<slug>` from FastAPI. A `?shop=<slug>` query selects a shop explicitly, for example `https://emenu.sabrey.xyz/?shop=sabrey`. The backend must allow the frontend origin through CORS. Without `VITE_API_ORIGIN`, configure a same-origin reverse proxy to forward `/v1/api/` to FastAPI while preserving the original `Host` header. Cloudflare wildcard DNS, frontend hosting and HTTPS must also be configured; building the frontend does not configure them.

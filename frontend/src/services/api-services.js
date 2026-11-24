@@ -32,14 +32,29 @@ export const api = {
   getMenu(slug) {
     return apiRequest(slug ? `/public/menus/${encodeURIComponent(slug)}` : '/public/menu')
   },
-  register(data) {
-    return apiRequest('/auth/register', { method: 'POST', body: data })
+  register(data, token) {
+    return apiRequest('/auth/register', { method: 'POST', body: data, token })
   },
   login(email, password) {
     return apiRequest('/auth/login', { method: 'POST', body: { email, password } })
   },
   listTenants(token) {
     return apiRequest('/tenants', { token })
+  },
+  getCurrentUser(token) {
+    return apiRequest('/auth/me', { token })
+  },
+  listBanners(tenantId, token) {
+    return apiRequest(`/tenants/${encodeURIComponent(tenantId)}/banners`, { token })
+  },
+  listCategories(tenantId, token) {
+    return apiRequest(`/tenants/${encodeURIComponent(tenantId)}/categories`, { token })
+  },
+  listMenuItems(tenantId, token) {
+    return apiRequest(`/tenants/${encodeURIComponent(tenantId)}/menu-items`, { token })
+  },
+  listMembers(tenantId, token) {
+    return apiRequest(`/tenants/${encodeURIComponent(tenantId)}/members`, { token })
   },
   updateTemplate(tenantId, displayTemplate, token) {
     return apiRequest(`/tenants/${encodeURIComponent(tenantId)}`, {
