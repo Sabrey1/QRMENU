@@ -11,6 +11,25 @@ from main import app
 
 
 class RateLimitTests(unittest.TestCase):
+    def test_cors_allows_emenu_frontend(self):
+        with TestClient(app) as client:
+            preflight = client.options(
+                "/v1/api/auth/login",
+                headers={
+                    "Origin": "https://emenu.sabrey.xyz",
+                    "Access-Control-Request-Method": "POST",
+                    "Access-Control-Request-Headers": "authorization,content-type",
+                },
+            )
+            self.assertEqual(preflight.status_code, 200)
+            self.assertEqual(preflight.headers["access-control-allow-origin"], "https://emenu.sabrey.xyz")
+
+            response = client.get("/healthz", headers={"Origin": "https://emenu.sabrey.xyz"})
+            self.assertEqual(response.headers["access-control-allow-origin"], "https://emenu.sabrey.xyz")
+
+            other_origin = client.get("/healthz", headers={"Origin": "https://other.example"})
+            self.assertNotIn("access-control-allow-origin", other_origin.headers)
+
     def test_login_limit_covers_both_url_versions_and_ignores_spoofed_headers(self):
         with TestClient(app, client=("198.51.100.10", 5000)) as client:
             for index in range(10):

@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
+from starlette.middleware.cors import CORSMiddleware
 from app.dependencies import Db
 from app.config import settings
 from app.api.v1.router import router as v1_router
@@ -11,6 +12,12 @@ from app.rate_limit import RateLimitMiddleware
 def create_app() -> FastAPI:
     app = FastAPI(title="QR Menu API")
     app.add_middleware(RateLimitMiddleware)
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["https://emenu.sabrey.xyz"],
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
     app.include_router(v1_router, prefix="/v1")
     # Keep existing clients working while they migrate to the versioned URLs.
     app.include_router(v1_router, include_in_schema=False)
