@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     db_password: str
     db_ssl_enabled: bool = False
     db_ssl_ca_pem: str = ""
+    db_ssl_ca_file: Path | None = None
     secret_key: str = ""
     access_token_expire_minutes: int = 60
     rate_limit_storage_url: str = "memory://"

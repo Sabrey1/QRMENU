@@ -2,6 +2,8 @@
 .gitignore
 .env*
 **/.env*
+backend/certs/
+backend/ca.pem
 .aws
 .codex
 .agents

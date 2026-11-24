@@ -8,7 +8,18 @@ Install and start the API from this directory:
 .\.venv\Scripts\python.exe -m uvicorn main:app --reload
 ```
 
-Configure MySQL in `.env` using `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, and `DB_PASSWORD`. Set `SECRET_KEY` to a random secret of at least 32 characters. Keep it private and stable across restarts; changing it invalidates existing tokens. `ACCESS_TOKEN_EXPIRE_MINUTES` defaults to 60. For a hosted database, set `DB_SSL_ENABLED=true` to verify its TLS certificate and hostname. If the database provider uses a private CA, set `DB_SSL_CA_PEM` to its PEM certificate; otherwise the system CA store is used.
+Configure MySQL in `.env` using `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, and `DB_PASSWORD`. Set `SECRET_KEY` to a random secret of at least 32 characters. Keep it private and stable across restarts; changing it invalidates existing tokens. `ACCESS_TOKEN_EXPIRE_MINUTES` defaults to 60.
+
+### Aiven for MySQL
+
+1. In your Aiven service's **Overview → Connection information**, get the host, port, database, username and password, and download the project's **CA Certificate**. Aiven uses a service-specific port; use the value shown in the console rather than assuming 3306.
+2. Store the downloaded certificate at `backend/certs/aiven-ca.pem`, or use another path. The `backend/certs/` folder is ignored by Git and excluded from the Docker image.
+3. In the existing `backend/.env`, keep your database credentials and set `DB_SSL_ENABLED=true` and `DB_SSL_CA_FILE=certs/aiven-ca.pem`. Relative certificate paths are resolved from the backend directory. See `.env.example` for a complete example; do not overwrite an existing `.env` containing credentials.
+4. From the backend directory, run `.\.venv\Scripts\python.exe test_connection.py`. This runs a read-only connection check using the same SQLAlchemy engine as the API and Alembic. Restart the API after changing `.env`.
+
+Alternatively, after saving the CA certificate, run `.\.venv\Scripts\python.exe configure_aiven.py` from the backend directory. The guided setup asks for the individual Aiven values locally, hides the password while you type, saves them in `.env`, and checks the connection. It preserves an existing `SECRET_KEY` and generates one only if missing.
+
+TLS verifies both the server certificate and hostname. For Render, set `DB_SSL_ENABLED=true` and provide the CA certificate contents as `DB_SSL_CA_PEM` in Render's environment settings instead of using a local file. Set **either** `DB_SSL_CA_FILE` or `DB_SSL_CA_PEM`, not both. The CA file and credentials are not deployed automatically. Aiven rotates project CAs; update the configured certificate when Aiven notifies you.
 
 Visit http://127.0.0.1:8000/docs for request and response formats. A typical flow is:
 

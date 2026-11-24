@@ -21,3 +21,5 @@ services:
         sync: false
       - key: DB_SSL_ENABLED
         value: "true"
+      - key: DB_SSL_CA_PEM
+        sync: false
