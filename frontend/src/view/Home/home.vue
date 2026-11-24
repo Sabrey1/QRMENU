@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import DefaultTemplate from '../template/default_template/default_template.vue'
 import CosmeticTemplate from '../template/cosmetic_template/cosmetic_template.vue'
 import CambodiaTemplate from '../template/cambodia_template/cambodia_template.vue'
+import { api, ApiError } from '../../services/api-services'
 
 // Register additional templates here; never import a path supplied by the API.
 const templates = new Map([
@@ -37,25 +38,22 @@ async function signIn(email, password) {
   }
   templateState.busy = true
   try {
-    const login = await fetch('/v1/api/auth/login', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    })
-    if (login.status === 429) throw new Error('templateRateLimited')
-    if (login.status === 401) throw new Error('templateLoginFailed')
-    if (!login.ok) throw new Error('templateRequestFailed')
-    const { access_token: token } = await login.json()
-    const response = await fetch('/v1/api/tenants', { headers: { Authorization: `Bearer ${token}` } })
-    if (response.status === 429) throw new Error('templateRateLimited')
-    if (!response.ok) throw new Error('templateRequestFailed')
-    const tenants = await response.json()
+    let login
+    try {
+      login = await api.login(email, password)
+    } catch (cause) {
+      if (cause instanceof ApiError && cause.status === 401) throw new Error('templateLoginFailed')
+      throw cause
+    }
+    const token = login.access_token
+    const tenants = await api.listTenants(token)
     const tenant = tenants.find((item) => item.slug === menu.value?.slug)
     if (!tenant) throw new Error('templateNoAccess')
     Object.assign(templateState, { token, tenantId: tenant.id, slug: tenant.slug, menuUrl: tenant.menu_url || '' })
     return true
   } catch (cause) {
     const known = ['templateRateLimited', 'templateLoginFailed', 'templateNoAccess', 'templateRequestFailed']
-    templateState.error = known.includes(cause.message) ? cause.message : 'templateRequestFailed'
+    templateState.error = cause instanceof ApiError && cause.status === 429 ? 'templateRateLimited' : (known.includes(cause.message) ? cause.message : 'templateRequestFailed')
     return false
   } finally {
     templateState.busy = false
@@ -68,24 +66,16 @@ async function saveTemplate(value) {
   templateState.status = ''
   templateState.busy = true
   try {
-    const response = await fetch(`/v1/api/tenants/${templateState.tenantId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${templateState.token}` },
-      body: JSON.stringify({ display_template: value }),
-    })
-    if (response.status === 401) {
-      signOut()
-      throw new Error('templateSessionExpired')
-    }
-    if (response.status === 403) throw new Error('templateForbidden')
-    if (response.status === 429) throw new Error('templateRateLimited')
-    if (!response.ok) throw new Error('templateRequestFailed')
-    const tenant = await response.json()
+    const tenant = await api.updateTemplate(templateState.tenantId, value, templateState.token)
     templateState.status = 'templateSaved'
     menu.value = { ...menu.value, display_template: tenant.display_template }
   } catch (cause) {
-    const known = ['templateSessionExpired', 'templateForbidden', 'templateRateLimited', 'templateRequestFailed']
-    templateState.error = known.includes(cause.message) ? cause.message : 'templateRequestFailed'
+    if (cause instanceof ApiError && cause.status === 401) {
+      signOut()
+      templateState.error = 'templateSessionExpired'
+    } else if (cause instanceof ApiError && cause.status === 403) templateState.error = 'templateForbidden'
+    else if (cause instanceof ApiError && cause.status === 429) templateState.error = 'templateRateLimited'
+    else templateState.error = 'templateRequestFailed'
   } finally {
     templateState.busy = false
   }
@@ -96,21 +86,15 @@ async function showQr() {
   templateState.busy = true
   templateState.error = ''
   try {
-    const response = await fetch(`/v1/api/tenants/${templateState.tenantId}/qr-code`, {
-      headers: { Authorization: `Bearer ${templateState.token}` },
-    })
-    if (response.status === 401) {
-      signOut()
-      throw new Error('templateSessionExpired')
-    }
-    if (response.status === 429) throw new Error('templateRateLimited')
-    if (!response.ok) throw new Error('templateRequestFailed')
-    const image = await response.blob()
+    const image = await api.getQrCode(templateState.tenantId, templateState.token)
     if (templateState.qrUrl) URL.revokeObjectURL(templateState.qrUrl)
     templateState.qrUrl = URL.createObjectURL(image)
   } catch (cause) {
-    const known = ['templateSessionExpired', 'templateRateLimited', 'templateRequestFailed']
-    templateState.error = known.includes(cause.message) ? cause.message : 'templateRequestFailed'
+    if (cause instanceof ApiError && cause.status === 401) {
+      signOut()
+      templateState.error = 'templateSessionExpired'
+    } else if (cause instanceof ApiError && cause.status === 429) templateState.error = 'templateRateLimited'
+    else templateState.error = 'templateRequestFailed'
   } finally {
     templateState.busy = false
   }
@@ -134,13 +118,9 @@ async function loadMenu() {
   loading.value = true
   error.value = ''
   try {
-    const endpoint = slug ? `/v1/api/public/menus/${encodeURIComponent(slug)}` : '/v1/api/public/menu'
-    const response = await fetch(endpoint, { headers: { Accept: 'application/json' } })
-    if (response.status === 404) throw new Error('notFound')
-    if (!response.ok) throw new Error('loadError')
-    menu.value = await response.json()
+    menu.value = await api.getMenu(slug)
   } catch (cause) {
-    error.value = cause instanceof TypeError ? 'connectionError' : (cause.message === 'notFound' ? 'notFound' : 'loadError')
+    error.value = cause instanceof TypeError ? 'connectionError' : (cause instanceof ApiError && cause.status === 404 ? 'notFound' : 'loadError')
   } finally {
     loading.value = false
   }
