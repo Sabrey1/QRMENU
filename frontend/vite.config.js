@@ -7,7 +7,7 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [tailwindcss(), vue()],
     server: {
-      proxy: API_PROXY_TARGET ? { '/v1/api': { target: API_PROXY_TARGET, changeOrigin: false } } : {},
+      proxy: API_PROXY_TARGET ? { '/v1/api': { target: API_PROXY_TARGET, changeOrigin: true } } : {},
     },
   }
 })

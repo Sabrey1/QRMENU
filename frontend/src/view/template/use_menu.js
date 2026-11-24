@@ -16,9 +16,10 @@ export function useMenu(props) {
   let scrollFrame = 0
 
   watch(menu, () => { failedImages.value = new Set() })
+  const availableCategories = computed(() => (menu.value?.categories ?? []).filter((category) => category.items.length > 0))
   const categories = computed(() => {
     const term = query.value.trim().toLocaleLowerCase()
-    return (menu.value?.categories ?? []).map((category) => ({
+    return availableCategories.value.map((category) => ({
       ...category,
       items: category.items.filter((item) => !term || item.name.toLocaleLowerCase().includes(term)),
     })).filter((category) => !term || category.items.length > 0)
@@ -96,5 +97,5 @@ export function useMenu(props) {
     if (scrollFrame) window.cancelAnimationFrame(scrollFrame)
   })
 
-  return { query, failedImages, searchOpen, searchInput, searchButton, shopSlug, toolbar, categoryNav, activeCategoryId, categories, formatPrice, showCategory, toggleSearch, clearSearch }
+  return { query, failedImages, searchOpen, searchInput, searchButton, shopSlug, toolbar, categoryNav, activeCategoryId, availableCategories, categories, formatPrice, showCategory, toggleSearch, clearSearch }
 }

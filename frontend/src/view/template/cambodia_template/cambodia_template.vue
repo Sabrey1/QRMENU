@@ -12,14 +12,14 @@ const props = defineProps({
   isLocal: { type: Boolean, default: false },
 })
 const emit = defineEmits(['retry', 'choose-shop', 'open-shop'])
-const { query, failedImages, searchOpen, searchInput, searchButton, shopSlug, toolbar, categoryNav, activeCategoryId, categories, formatPrice, showCategory, toggleSearch, clearSearch } = useMenu(props)
+const { query, failedImages, searchOpen, searchInput, searchButton, shopSlug, toolbar, categoryNav, activeCategoryId, availableCategories, categories, formatPrice, showCategory, toggleSearch, clearSearch } = useMenu(props)
 </script>
 
 <template>
   <div class="page cambodia-theme" id="top">
     <MenuHeader variant="cambodia" :shop-name="menu?.name || ''" :logo-url="menu?.logo_url || ''" />
 
-    <main class="container">
+    <main class="container" :class="{ 'is-empty': menu && !loading && !error && !needsShop && !availableCategories.length }">
       <div v-if="loading" class="menu-skeleton" role="status" aria-live="polite">
         <span class="sr-only">{{ $t('loading') }}</span>
         <div class="skeleton-toolbar" aria-hidden="true">
@@ -58,7 +58,7 @@ const { query, failedImages, searchOpen, searchInput, searchButton, shopSlug, to
       </div>
 
       <template v-else-if="menu">
-        <div ref="toolbar" class="menu-toolbar">
+        <div v-if="availableCategories.length" ref="toolbar" class="menu-toolbar">
         <div class="search-slot">
         <div class="menu-controls" :class="{ 'is-open': searchOpen }">
           <button ref="searchButton" class="search-toggle" type="button" :aria-expanded="searchOpen" aria-controls="menu-search" :aria-label="$t(searchOpen ? 'closeSearch' : 'searchMenu')" @click="toggleSearch">
@@ -72,13 +72,16 @@ const { query, failedImages, searchOpen, searchInput, searchButton, shopSlug, to
         </div>
         </div>
 
-        <nav v-if="menu.categories.length" ref="categoryNav" class="category-nav" :inert="searchOpen" :aria-label="$t('categories')">
-          <a v-for="category in menu.categories" :key="category.id" :href="`#category-${category.id}`" :class="{ active: activeCategoryId === category.id }" :aria-current="activeCategoryId === category.id ? 'location' : undefined" @click.prevent="showCategory(category.id)">{{ category.name }}</a>
+        <nav v-if="availableCategories.length" ref="categoryNav" class="category-nav" :inert="searchOpen" :aria-label="$t('categories')">
+          <a v-for="category in availableCategories" :key="category.id" :href="`#category-${category.id}`" :class="{ active: activeCategoryId === category.id }" :aria-current="activeCategoryId === category.id ? 'location' : undefined" @click.prevent="showCategory(category.id)">{{ category.name }}</a>
         </nav>
         </div>
         <MenuSlider class="cambodia-banner" :slides="menu.banners || []" />
 
-        <p v-if="!menu.categories.length" class="empty">{{ $t('emptyMenu') }}</p>
+        <div v-if="!availableCategories.length" class="empty-menu">
+          <svg class="empty-menu-icon" viewBox="0 0 48 48" fill="none" aria-hidden="true"><rect x="10" y="7" width="28" height="34" rx="5"/><path d="M17 17h14M17 24h14M17 31h8"/></svg>
+          <p class="empty">{{ $t('emptyMenu') }}</p>
+        </div>
         <p v-else-if="!categories.length" class="empty">{{ $t('noResults', { query }) }}</p>
 
         <section v-for="category in categories" :id="`category-${category.id}`" :key="category.id" class="category">
@@ -151,6 +154,10 @@ h2 { font-size: 1.375em; font-weight: 700; }
 .item-image { width: 92px; height: 92px; flex-shrink: 0; object-fit: cover; border-radius: 6px; background: #f3f4f6; }
 .item-avatar { width: 92px; height: 92px; flex-shrink: 0; display: grid; place-items: center; border-radius: 6px; background: #edf3ee; color: #285a42; font-size: 1.75em; font-weight: 600; }
 .empty { color: #6b7280; margin-top: 24px; }
+.container.is-empty { display: flex; flex-direction: column; }
+.empty-menu { flex: 1; min-height: 240px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.empty-menu-icon { width: 56px; height: 56px; color: #b7a889; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.empty-menu .empty { margin-top: 16px; }
 .state { max-width: 460px; margin: 40px auto; }
 .state p { color: #6b7280; margin-top: 12px; line-height: 1.6; }
 .shop-form { margin-top: 24px; }
