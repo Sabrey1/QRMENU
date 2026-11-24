@@ -76,3 +76,63 @@ h1,h2,h3,p { margin: 0; } h1,h2,h3 { font-family: Manrope, sans-serif; } h1 { ma
   .hero-copy, .hero-visual, .floating-qr, .floating-update { animation: none; }
   .reveal-pending { opacity: 1; transform: none; }
 }
+
+.mobile-actions { display: none; }
+@media (max-width: 760px) {
+  .mobile-actions { display: flex; align-items: center; gap: 10px; }
+  .mobile-demo { min-height: 44px; padding: 0 19px; }
+  .mobile-toggle { width: 44px; height: 44px; }
+  .mobile-toggle[aria-expanded='true'] span:first-child { transform: translateY(4px) rotate(45deg); }
+  .mobile-toggle[aria-expanded='true'] span:last-child { transform: translateY(-4px) rotate(-45deg); }
+  .mobile-toggle span { transition: transform .2s ease; }
+  .mobile-nav { padding-bottom: 20px; }
+  .mobile-nav a { display: flex; align-items: center; min-height: 48px; font-size: 1rem; }
+  .hero { min-height: 0; }
+  .hero-buttons .button { min-height: 52px; }
+  .feature p, .step p, .faq-list details p, .contact-card p { font-size: 1rem; }
+  .demo-banner { height: 150px; }
+  .demo-category-nav { gap: 8px; }
+  .demo-category-nav button { min-height: 44px; padding: 9px 13px; font-size: .875rem; }
+  .demo-title { margin-block: 22px 14px; }
+  .demo-title small { font-size: .7rem; }
+  .demo-title h3 { font-size: 1.1rem; }
+  .demo-header strong { font-size: .95rem; }
+  .demo-header small { font-size: .58rem; }
+  .demo-language { font-size: .8rem; }
+  .demo-items { grid-template-columns: 1fr; gap: 8px; }
+  .demo-item { gap: 14px; padding: 10px; }
+  .demo-item-photo { width: 64px; height: 64px; }
+  .demo-item strong { font-size: .9rem; }
+  .demo-item small { margin-block: 5px; font-size: .8rem; }
+  .demo-item b { font-size: .85rem; }
+  .faq-list summary { min-height: 56px; font-size: 1rem; }
+  .contact-card .button { min-height: 48px; }
+}
+@media (max-width: 520px) {
+  .hero { gap: 28px; }
+  .hero h1 { font-size: clamp(2.65rem, 11vw, 3.35rem); line-height: 1.08; }
+  .hero-description { font-size: 1rem; line-height: 1.7; }
+  .hero-buttons { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .hero-note { flex-wrap: wrap; margin-top: 24px; font-size: .8rem; }
+  .section { padding-block: 72px; }
+  .feature-grid { grid-template-columns: 1fr; gap: 14px; }
+  .feature { padding: 22px; border: 1px solid #e6eee2; border-radius: 10px; background: #fbfdf9; }
+  .feature-icon { margin-bottom: 16px; }
+  .feature h3 { font-size: 1.05rem; }
+  .feature p { margin-top: 8px; }
+  .preview-layout { min-height: 0; padding-block: 72px; }
+  .preview-copy h2 { font-size: clamp(2.5rem, 10vw, 3rem); }
+  .preview-stage { padding-top: 12px; }
+  .preview-badge { right: 8px; bottom: -28px; }
+  .steps-grid { margin-top: 45px; }
+  .step-art { height: 190px; }
+  .story-copy { padding: 40px 24px; }
+  .contact-section { margin-bottom: 72px; padding: 32px 20px; }
+  .contact-card { flex-wrap: wrap; }
+  .contact-card > div { min-width: 0; flex: 1 1 180px; }
+  .footer { padding-top: 50px; }
+  .footer-links { gap: 30px; justify-content: space-between; }
+  .footer-links strong { font-size: .75rem; }
+  .footer-links a { display: inline-flex; align-items: center; min-height: 36px; font-size: .9rem; }
+  .scroll-top { right: max(14px, env(safe-area-inset-right)); bottom: max(14px, env(safe-area-inset-bottom)); }
+}

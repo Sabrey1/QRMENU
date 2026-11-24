@@ -4,6 +4,7 @@ import MediaFrame from './components/MediaFrame.vue'
 import { contactTelegram, media, menuAppUrl } from './content'
 
 const menuOpen = ref(false)
+const mobileToggle = ref(null)
 const showScrollTop = ref(false)
 const selectedCategory = ref('All')
 const categories = ['All', 'Breakfast', 'Coffee', 'Drinks']
@@ -35,6 +36,11 @@ function scrollToTop() {
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
   document.getElementById('top')?.focus({ preventScroll: true })
   window.scrollTo({ top: 0, behavior: reducedMotion ? 'auto' : 'smooth' })
+}
+function closeMobileMenu() {
+  if (!menuOpen.value) return
+  menuOpen.value = false
+  mobileToggle.value?.focus()
 }
 onMounted(() => {
   updateScrollTop()
@@ -70,14 +76,14 @@ onUnmounted(() => {
       <symbol id="icon-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
     </svg>
 
-    <header class="site-header">
+    <header class="site-header" @keydown.esc="closeMobileMenu">
       <div class="header-inner wrap">
         <a class="brand" href="#top" aria-label="Sabrey home"><span class="brand-icon"><i></i><i></i><i></i><i></i></span><span>sabrey<span class="brand-dot">.</span></span></a>
         <nav class="desktop-nav" aria-label="Main navigation"><a href="#features">Features</a><a href="#how-it-works">How it works</a><a href="#preview">Menu preview</a><a href="#faq">FAQs</a><a href="#contact">Contact</a></nav>
         <div class="header-actions"><a class="login-link" :href="`${menuAppUrl}/login`">Log in</a><a class="button button-dark header-cta" href="https://demo.sabrey.xyz/" target="_blank" rel="noopener noreferrer">Demo</a></div>
-        <button class="mobile-toggle" type="button" :aria-expanded="menuOpen" aria-controls="mobile-nav" :aria-label="menuOpen ? 'Close menu' : 'Open menu'" @click="menuOpen = !menuOpen"><span></span><span></span></button>
+        <div class="mobile-actions"><a class="button button-dark mobile-demo" href="https://demo.sabrey.xyz/" target="_blank" rel="noopener noreferrer">Demo</a><button ref="mobileToggle" class="mobile-toggle" type="button" :aria-expanded="menuOpen" aria-controls="mobile-nav" :aria-label="menuOpen ? 'Close menu' : 'Open menu'" @click="menuOpen = !menuOpen"><span></span><span></span></button></div>
       </div>
-      <nav v-if="menuOpen" id="mobile-nav" class="mobile-nav wrap" aria-label="Mobile navigation"><a href="#features" @click="menuOpen = false">Features</a><a href="#how-it-works" @click="menuOpen = false">How it works</a><a href="#preview" @click="menuOpen = false">Menu preview</a><a href="#faq" @click="menuOpen = false">FAQs</a><a href="#contact" @click="menuOpen = false">Contact</a><a :href="`${menuAppUrl}/login`">Log in</a></nav>
+      <nav v-show="menuOpen" id="mobile-nav" class="mobile-nav wrap" aria-label="Mobile navigation"><a href="#features" @click="menuOpen = false">Features</a><a href="#how-it-works" @click="menuOpen = false">How it works</a><a href="#preview" @click="menuOpen = false">Menu preview</a><a href="#faq" @click="menuOpen = false">FAQs</a><a href="#contact" @click="menuOpen = false">Contact</a><a :href="`${menuAppUrl}/login`">Log in</a></nav>
     </header>
 
     <main id="top" tabindex="-1">
