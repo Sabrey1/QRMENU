@@ -27,6 +27,12 @@ class RateLimitTests(unittest.TestCase):
             response = client.get("/healthz", headers={"Origin": "https://emenu.sabrey.xyz"})
             self.assertEqual(response.headers["access-control-allow-origin"], "https://emenu.sabrey.xyz")
 
+            shop_origin = client.get("/healthz", headers={"Origin": "https://sabrey.sabrey.xyz"})
+            self.assertEqual(shop_origin.headers["access-control-allow-origin"], "https://sabrey.sabrey.xyz")
+
+            spoofed_origin = client.get("/healthz", headers={"Origin": "https://sabrey.sabrey.xyz.example.com"})
+            self.assertNotIn("access-control-allow-origin", spoofed_origin.headers)
+
             other_origin = client.get("/healthz", headers={"Origin": "https://other.example"})
             self.assertNotIn("access-control-allow-origin", other_origin.headers)
 

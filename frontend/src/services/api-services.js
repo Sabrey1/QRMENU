@@ -1,4 +1,5 @@
-const API_BASE = '/v1/api'
+const API_ORIGIN = (import.meta.env?.VITE_API_ORIGIN || '').replace(/\/$/, '')
+const API_BASE = `${API_ORIGIN}/v1/api`
 
 export class ApiError extends Error {
   constructor(status, retryAfter = null) {
@@ -9,7 +10,7 @@ export class ApiError extends Error {
   }
 }
 
-// Use relative URLs so the shop hostname reaches the API in production.
+// An optional API origin supports a frontend hosted separately from FastAPI.
 export async function apiRequest(path, { method = 'GET', token, body, responseType = 'json', signal } = {}) {
   if (!path.startsWith('/') || path.startsWith('//')) throw new TypeError('API path must start with a single slash')
   const headers = { Accept: responseType === 'blob' ? 'image/svg+xml' : 'application/json' }

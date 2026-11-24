@@ -18,6 +18,7 @@ const loading = ref(true)
 const error = ref('')
 const needsShop = ref(false)
 const isLocal = ['localhost', '127.0.0.1', '[::1]'].includes(window.location.hostname)
+const apiIsSeparate = Boolean(import.meta.env.VITE_API_ORIGIN)
 const { t, locale } = useI18n({ useScope: 'global' })
 const displayTemplate = computed(() => templates.get(menu.value?.display_template) ?? DefaultTemplate)
 const templateState = reactive({ token: '', tenantId: null, slug: '', menuUrl: '', qrUrl: '', busy: false, error: '', status: '' })
@@ -107,7 +108,9 @@ watch([menu, locale], () => {
 })
 
 async function loadMenu() {
-  const slug = new URLSearchParams(window.location.search).get('shop')?.trim()
+  const requestedSlug = new URLSearchParams(window.location.search).get('shop')?.trim()
+  const hostnameMatch = window.location.hostname.toLowerCase().match(/^([a-z0-9-]+)\.sabrey\.xyz$/)
+  const slug = requestedSlug || (apiIsSeparate ? hostnameMatch?.[1] : '')
   if (isLocal && !slug) {
     needsShop.value = true
     loading.value = false

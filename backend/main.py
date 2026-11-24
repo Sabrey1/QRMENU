@@ -15,6 +15,7 @@ def create_app() -> FastAPI:
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["https://emenu.sabrey.xyz", "http://localhost:5173"],
+        allow_origin_regex=r"https://[a-z0-9-]+\.sabrey\.xyz",
         allow_methods=["*"],
         allow_headers=["*"],
     )
