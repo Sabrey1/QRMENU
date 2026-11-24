@@ -13,7 +13,7 @@ Configure MySQL in `.env` using `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, and 
 ### Aiven for MySQL
 
 1. In your Aiven service's **Overview → Connection information**, get the host, port, database, username and password, and download the project's **CA Certificate**. Aiven uses a service-specific port; use the value shown in the console rather than assuming 3306.
-2. Store the downloaded certificate at `backend/certs/aiven-ca.pem`, or use another path. The `backend/certs/` folder is ignored by Git and excluded from the Docker image.
+2. Store the downloaded certificate at `backend/certs/aiven-ca.pem`, or use another path. The `backend/certs/` folder is ignored by Git and is not deployed automatically.
 3. In the existing `backend/.env`, keep your database credentials and set `DB_SSL_ENABLED=true` and `DB_SSL_CA_FILE=certs/aiven-ca.pem`. Relative certificate paths are resolved from the backend directory. See `.env.example` for a complete example; do not overwrite an existing `.env` containing credentials.
 4. From the backend directory, run `.\.venv\Scripts\python.exe test_connection.py`. This runs a read-only connection check using the same SQLAlchemy engine as the API and Alembic. Restart the API after changing `.env`.
 
