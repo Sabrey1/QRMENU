@@ -1,9 +1,10 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import MediaFrame from './components/MediaFrame.vue'
-import { media, menuAppUrl } from './content'
+import { contactTelegram, media, menuAppUrl } from './content'
 
 const menuOpen = ref(false)
+const showScrollTop = ref(false)
 const selectedCategory = ref('All')
 const categories = ['All', 'Breakfast', 'Coffee', 'Drinks']
 const items = [
@@ -25,6 +26,38 @@ const questions = [
   { q: 'Do my customers need to download an app?', a: 'No. Your menu opens in a web browser on their phone.' },
   { q: 'Can I choose a different look?', a: 'Yes. Sabrey includes different menu templates for your shop.' },
 ]
+
+let revealObserver
+function updateScrollTop() {
+  showScrollTop.value = window.scrollY > 400
+}
+function scrollToTop() {
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  document.getElementById('top')?.focus({ preventScroll: true })
+  window.scrollTo({ top: 0, behavior: reducedMotion ? 'auto' : 'smooth' })
+}
+onMounted(() => {
+  updateScrollTop()
+  window.addEventListener('scroll', updateScrollTop, { passive: true })
+  if (!('IntersectionObserver' in window) || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+  revealObserver = new IntersectionObserver((entries) => {
+    for (const entry of entries) {
+      if (entry.isIntersecting) {
+        entry.target.classList.remove('reveal-pending')
+        revealObserver.unobserve(entry.target)
+      }
+    }
+  }, { threshold: 0, rootMargin: '0px 0px -40px 0px' })
+  document.querySelectorAll('.section-heading, .feature, .preview-copy, .preview-stage, .step, .story-media, .story-copy, .faq-intro, .faq-list, .contact-section').forEach((element) => {
+    if (element.getBoundingClientRect().top < window.innerHeight) return
+    element.classList.add('reveal-on-scroll', 'reveal-pending')
+    revealObserver.observe(element)
+  })
+})
+onUnmounted(() => {
+  window.removeEventListener('scroll', updateScrollTop)
+  revealObserver?.disconnect()
+})
 </script>
 
 <template>
@@ -40,20 +73,20 @@ const questions = [
     <header class="site-header">
       <div class="header-inner wrap">
         <a class="brand" href="#top" aria-label="Sabrey home"><span class="brand-icon"><i></i><i></i><i></i><i></i></span><span>sabrey<span class="brand-dot">.</span></span></a>
-        <nav class="desktop-nav" aria-label="Main navigation"><a href="#features">Features</a><a href="#how-it-works">How it works</a><a href="#preview">Menu preview</a><a href="#faq">FAQs</a></nav>
-        <div class="header-actions"><a class="login-link" :href="`${menuAppUrl}/login`">Log in</a><a class="button button-dark header-cta" href="#get-started">Get started</a></div>
+        <nav class="desktop-nav" aria-label="Main navigation"><a href="#features">Features</a><a href="#how-it-works">How it works</a><a href="#preview">Menu preview</a><a href="#faq">FAQs</a><a href="#contact">Contact</a></nav>
+        <div class="header-actions"><a class="login-link" :href="`${menuAppUrl}/login`">Log in</a><a class="button button-dark header-cta" href="https://demo.sabrey.xyz/" target="_blank" rel="noopener noreferrer">Demo</a></div>
         <button class="mobile-toggle" type="button" :aria-expanded="menuOpen" aria-controls="mobile-nav" :aria-label="menuOpen ? 'Close menu' : 'Open menu'" @click="menuOpen = !menuOpen"><span></span><span></span></button>
       </div>
-      <nav v-if="menuOpen" id="mobile-nav" class="mobile-nav wrap" aria-label="Mobile navigation"><a href="#features" @click="menuOpen = false">Features</a><a href="#how-it-works" @click="menuOpen = false">How it works</a><a href="#preview" @click="menuOpen = false">Menu preview</a><a href="#faq" @click="menuOpen = false">FAQs</a><a :href="`${menuAppUrl}/login`">Log in</a></nav>
+      <nav v-if="menuOpen" id="mobile-nav" class="mobile-nav wrap" aria-label="Mobile navigation"><a href="#features" @click="menuOpen = false">Features</a><a href="#how-it-works" @click="menuOpen = false">How it works</a><a href="#preview" @click="menuOpen = false">Menu preview</a><a href="#faq" @click="menuOpen = false">FAQs</a><a href="#contact" @click="menuOpen = false">Contact</a><a :href="`${menuAppUrl}/login`">Log in</a></nav>
     </header>
 
-    <main id="top">
+    <main id="top" tabindex="-1">
       <section class="hero wrap">
         <div class="hero-copy">
           <div class="eyebrow hero-eyebrow"><span class="eyebrow-dot"></span> A FRESH TAKE ON YOUR MENU</div>
           <h1>Good food deserves a <span>better menu.</span></h1>
           <p class="hero-description">A beautiful digital menu for the places people love. Keep it fresh, share it with a scan, and make every first impression count.</p>
-          <div class="hero-buttons"><a class="button button-dark" href="#get-started">Get started</a><a class="button button-outline" href="#preview"><span class="play-icon">▶</span> Explore the demo</a></div>
+          <div class="hero-buttons"><a class="button button-dark" href="https://demo.sabrey.xyz/" target="_blank" rel="noopener noreferrer">Demo</a><a class="button button-outline" href="#how-it-works"><span class="play-icon">▶</span> How it works</a></div>
           <div class="hero-note"><span class="note-icon"><svg><use href="#icon-check"/></svg></span> Simple to manage <span class="note-divider"></span> Easy for guests</div>
         </div>
         <div class="hero-visual" aria-label="Illustration of a digital menu">
@@ -73,11 +106,15 @@ const questions = [
 
       <section id="how-it-works" class="section wrap how-section"><div class="section-heading centered"><span class="eyebrow"><span class="eyebrow-dot"></span> NICE AND EASY</span><h2>From your kitchen<br>to their screen.</h2><p>Getting your menu in front of your guests can be refreshingly simple.</p></div><div class="steps-grid"><article class="step"><div class="step-art step-art-one"><div class="mini-window"><span></span><span></span><span></span><div><i></i><i></i><i></i></div></div><div class="mini-plus">+</div></div><div class="step-label">01 / MAKE IT YOURS</div><h3>Build your menu</h3><p>Add your shop details, categories, items, and prices in one place.</p></article><article class="step"><div class="step-art step-art-two"><div class="template-stack"><div></div><div></div><div><span>YOUR<br>MENU.</span><i>✳</i></div></div></div><div class="step-label">02 / FIND YOUR LOOK</div><h3>Choose a style</h3><p>Pick a template that feels right at home with your business.</p></article><article class="step"><div class="step-art step-art-three"><div class="qr-paper"><svg><use href="#icon-qr"/></svg><span>SCAN ME</span></div><div class="scan-ring"></div></div><div class="step-label">03 / SHARE IT</div><h3>Let guests scan</h3><p>Share your menu’s QR code and let your guests explore on their phones.</p></article></div></section>
 
-      <section class="story-section wrap"><div class="story-media"><MediaFrame :media="media.story" label="Made for the places people love" /></div><div class="story-copy"><span class="eyebrow"><span class="eyebrow-dot"></span> MADE FOR YOUR EVERYDAY</span><h2>More time for<br><em>what matters.</em></h2><p>A good menu is just the beginning. Spend less time worrying about the little things and more time making your guests feel welcome.</p><a class="button button-dark" href="#get-started">Get started</a></div></section>
+      <section class="story-section wrap"><div class="story-media"><MediaFrame :media="media.story" label="Made for the places people love" /></div><div class="story-copy"><span class="eyebrow"><span class="eyebrow-dot"></span> MADE FOR YOUR EVERYDAY</span><h2>More time for<br><em>what matters.</em></h2><p>A good menu is just the beginning. Spend less time worrying about the little things and more time making your guests feel welcome.</p><a class="button button-dark" href="https://demo.sabrey.xyz/" target="_blank" rel="noopener noreferrer">Demo</a></div></section>
       <section id="faq" class="section wrap faq-section"><div class="faq-intro"><span class="eyebrow"><span class="eyebrow-dot"></span> GOOD TO KNOW</span><h2>A few things<br>you might ask.</h2><p>Everything you need to know to get started.</p></div><div class="faq-list"><details v-for="question in questions" :key="question.q"><summary>{{ question.q }}<span></span></summary><p>{{ question.a }}</p></details></div></section>
-      <section id="get-started" class="cta-section wrap"><div class="cta-decoration cta-deco-one">✳</div><div class="cta-decoration cta-deco-two">✳</div><span class="eyebrow light-eyebrow"><span class="eyebrow-dot"></span> LET’S MAKE SOMETHING GOOD</span><h2>Ready when<br><em>you are.</em></h2><p>Give your menu a little more room to shine.</p><a class="button button-lime" :href="`${menuAppUrl}/login`">Go to Sabrey</a><small>Already have an account? Sign in to manage your menu.</small></section>
+      <section id="contact" class="contact-section wrap" aria-labelledby="contact-title">
+        <div class="contact-copy"><span class="eyebrow"><span class="eyebrow-dot"></span> GET IN TOUCH</span><h2 id="contact-title">Let’s talk about<br>your menu.</h2><p>Have a question about Sabrey? Get in touch with us on Telegram.</p></div>
+        <div class="contact-card"><span class="telegram-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M21 4 3 11l7 2 3 7 3-5 5-11ZM10 13l11-9-8 16" /></svg></span><div><strong>Chat on Telegram</strong><p v-if="contactTelegram.isExample">Example link — add your Telegram username when you’re ready.</p><p v-else>We’d love to hear from you.</p><a class="button button-dark" :href="contactTelegram.url" target="_blank" rel="noopener noreferrer">{{ contactTelegram.isExample ? 'Example Telegram link' : 'Open Telegram' }}</a></div></div>
+      </section>
     </main>
 
-    <footer class="footer wrap"><div class="footer-top"><div><a class="brand" href="#top"><span class="brand-icon"><i></i><i></i><i></i><i></i></span><span>sabrey<span class="brand-dot">.</span></span></a><p>Good things start at the table.</p></div><div class="footer-links"><div><strong>EXPLORE</strong><a href="#features">Features</a><a href="#how-it-works">How it works</a><a href="#preview">Menu preview</a></div><div><strong>GET STARTED</strong><a :href="`${menuAppUrl}/login`">Log in</a><a href="#faq">FAQs</a></div></div></div><div class="footer-bottom"><span>© {{ new Date().getFullYear() }} Sabrey. All rights reserved.</span><span>MADE FOR GOOD TASTE <b>✳</b></span></div></footer>
+    <footer class="footer wrap"><div class="footer-top"><div><a class="brand" href="#top"><span class="brand-icon"><i></i><i></i><i></i><i></i></span><span>sabrey<span class="brand-dot">.</span></span></a><p>Good things start at the table.</p></div><div class="footer-links"><div><strong>EXPLORE</strong><a href="#features">Features</a><a href="#how-it-works">How it works</a><a href="#preview">Menu preview</a></div><div><strong>GET STARTED</strong><a :href="`${menuAppUrl}/login`">Log in</a><a href="#faq">FAQs</a><a href="#contact">Contact</a></div></div></div><div class="footer-bottom"><span>© {{ new Date().getFullYear() }} Sabrey. All rights reserved.</span><span>MADE FOR GOOD TASTE <b>✳</b></span></div></footer>
+    <Transition name="back-top"><button v-if="showScrollTop" class="scroll-top" type="button" aria-label="Scroll to top" @click="scrollToTop">Top</button></Transition>
   </div>
 </template>

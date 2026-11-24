@@ -42,3 +42,37 @@ h1,h2,h3,p { margin: 0; } h1,h2,h3 { font-family: Manrope, sans-serif; } h1 { ma
 @media (max-width: 760px) { .site-header { height: auto; min-height: 74px; }.header-inner { height: 74px; }.desktop-nav,.header-actions { display: none; }.mobile-toggle { display: grid; align-content: center; gap: 6px; width: 42px; height: 42px; padding: 10px; border: 1px solid #dce7dc; border-radius: 6px; background: #fff; }.mobile-toggle span { display: block; height: 2px; background: #315741; }.mobile-nav { display: grid; gap: 0; padding-bottom: 15px; }.mobile-nav a { padding: 11px 0; border-top: 1px solid #eff3ed; font-size: .9rem; }.hero { grid-template-columns: 1fr; gap: 35px; padding-top: 45px; padding-bottom: 45px; }.hero-copy { padding: 0; } h1 { max-width: 600px; font-size: clamp(3.4rem, 10vw, 4.7rem); }.hero-visual { height: 480px; }.trust-inner { flex-wrap: wrap; justify-content: center; gap: 14px; padding-block: 22px; }.trust-lead { width: 100%; margin: 0; text-align: center; }.section { padding-block: 85px; }.split-heading { display: block; }.split-heading > p { margin-top: 20px; }.feature-grid { grid-template-columns: repeat(2,1fr); gap: 38px 24px; margin-top: 45px; }.preview-layout { grid-template-columns: 1fr; gap: 35px; padding-block: 75px; }.preview-stage { max-width: 550px; width: 100%; margin: auto; }.steps-grid { gap: 16px; }.step-art { height: 190px; }.story-section { grid-template-columns: 1fr; }.story-media > div { min-height: 300px; }.story-copy { padding: 60px 9%; }.faq-section { grid-template-columns: 1fr; gap: 35px; }.cta-deco-one { left: -50px; font-size: 7rem; }.cta-deco-two { right: -50px; font-size: 9rem; } }
 @media (max-width: 520px) { .wrap { width: calc(100% - 36px); }.hero { padding-top: 30px; } h1 { font-size: 3.25rem; }.hero-description { font-size: .96rem; }.hero-buttons .button { padding-inline: 16px; }.hero-visual { height: 450px; }.phone { top: 21px; transform: translateX(-50%) scale(.91) rotate(-3deg); transform-origin: top center; }.floating-card { padding: 7px; }.floating-qr { top: 95px; left: 8px; }.floating-update { right: 8px; bottom: 75px; }.visual-caption { bottom: 17px; }.trust-inner { font-size: .75rem; }.feature-grid { gap: 32px 18px; }.feature h3 { font-size: .97rem; }.feature p { font-size: .84rem; }.section-heading h2,.faq-intro h2,.story-copy h2 { font-size: 2.3rem; }.preview-copy h2,.cta-section h2 { font-size: 3rem; }.preview-stage { padding: 25px 0 0; }.preview-badge { right: -4px; bottom: -35px; width: 78px; height: 78px; font-size: .4rem; }.demo-menu { padding-inline: 14px; }.demo-item-photo { width: 38px; height: 42px; }.demo-item { gap: 5px; padding: 5px; }.demo-item small { font-size: .42rem; }.steps-grid { grid-template-columns: 1fr; gap: 38px; }.step-art { height: 210px; }.step p { max-width: none; }.story-media > div { min-height: 250px; }.footer-top { display: block; padding-bottom: 50px; }.footer-links { gap: 70px; margin-top: 40px; }.footer-bottom { gap: 18px; flex-direction: column; } }
 @media (prefers-reduced-motion: reduce) { :root { scroll-behavior: auto; } *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; } }
+
+/* Keep content visible until JavaScript can observe it. */
+.reveal-on-scroll { transition: opacity .65s ease, transform .65s cubic-bezier(.2, .7, .2, 1); }
+.reveal-pending { opacity: 0; transform: translateY(24px); }
+.reveal-pending:focus-within { opacity: 1; transform: none; }
+.feature:nth-child(2), .step:nth-child(2) { transition-delay: .08s; }
+.feature:nth-child(3), .step:nth-child(3) { transition-delay: .16s; }
+.feature:nth-child(4) { transition-delay: .24s; }
+.hero-copy { animation: arrive .75s ease both; }
+.hero-visual { animation: arrive .85s .12s ease both; }
+.floating-qr { animation: float-card 5s ease-in-out infinite; }
+.floating-update { animation: float-card 5s 1s ease-in-out infinite; }
+@keyframes arrive { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes float-card { 50% { transform: translateY(-7px); } }
+.scroll-top { position: fixed; right: max(20px, env(safe-area-inset-right)); bottom: max(20px, env(safe-area-inset-bottom)); z-index: 10; min-width: 52px; min-height: 52px; padding: 10px; border: 1px solid #b4d09f; border-radius: 50%; color: #fff; background: #184c36; box-shadow: 0 6px 18px rgb(23 60 45 / 20%); font-size: .78rem; font-weight: 700; }
+.scroll-top:hover { background: #103c2a; }
+.back-top-enter-active, .back-top-leave-active { transition: opacity .2s ease, transform .2s ease; }
+.back-top-enter-from, .back-top-leave-to { opacity: 0; transform: translateY(8px); }
+.contact-section { display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 48px; margin-bottom: 125px; padding: 68px; border: 1px solid #e1ebdc; border-radius: 12px; background: #f5f9f1; }
+.contact-copy h2 { margin-top: 19px; color: #1c4330; font-size: clamp(2.2rem, 3.5vw, 3.2rem); line-height: 1.13; letter-spacing: -.055em; }
+.contact-copy > p { max-width: 390px; margin-top: 20px; color: #718175; line-height: 1.8; }
+.contact-card { display: flex; align-items: flex-start; gap: 20px; padding: 30px; border: 1px solid #e5eee1; border-radius: 10px; background: #fff; }
+.telegram-icon { display: grid; place-items: center; width: 48px; height: 48px; flex: none; border-radius: 50%; color: #fff; background: #298fc5; }
+.telegram-icon svg { width: 25px; height: 25px; stroke-width: 1.7; }
+.contact-card strong { color: #254935; font-family: Manrope, sans-serif; font-size: 1.05rem; }
+.contact-card p { margin: 10px 0 20px; color: #718175; font-size: .9rem; line-height: 1.6; }
+.contact-card .button { min-height: 44px; }
+@media (min-width: 761px) and (max-width: 900px) { .header-inner { gap: 16px; }.desktop-nav { gap: 12px; }.desktop-nav a, .login-link { font-size: .78rem; }.header-actions { gap: 12px; }.header-cta { padding-inline: 13px; } }
+@media (max-width: 760px) { .contact-section { grid-template-columns: 1fr; gap: 28px; margin-bottom: 85px; padding: 40px 28px; } }
+@media (max-width: 520px) { .contact-card { padding: 22px; gap: 15px; }.contact-copy h2 { font-size: 2.3rem; } }
+@media (prefers-reduced-motion: reduce) {
+  .hero-copy, .hero-visual, .floating-qr, .floating-update { animation: none; }
+  .reveal-pending { opacity: 1; transform: none; }
+}

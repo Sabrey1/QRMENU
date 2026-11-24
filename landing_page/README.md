@@ -30,3 +30,7 @@ menuBanner: { type: 'video', src: '/media/your-menu.mp4', alt: 'Our menu' },
 You can also use an absolute public URL. The story area, menu banner, and four example product images each have their own entry. Set `type` to `placeholder` to restore a placeholder. Videos have playback controls and do not play automatically. Change the example product names, descriptions and prices in `src/App.vue`.
 
 Run `npm run build` to create the production files in `dist`.
+
+## Contact link
+
+The Contact section starts with an example Telegram link. In `src/content.js`, change `contactTelegram.url` to your own link (for example, `https://t.me/yourname`) and set `isExample` to `false`.

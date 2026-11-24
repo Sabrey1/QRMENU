@@ -10,3 +10,6 @@ export const media = {
 
 // Set VITE_MENU_APP_URL in .env when the menu application uses a different origin.
 export const menuAppUrl = (import.meta.env.VITE_MENU_APP_URL || (import.meta.env.DEV ? 'http://localhost:5173' : 'https://emenu.sabrey.xyz')).replace(/\/$/, '')
+
+// Replace the example URL with your Telegram link and set isExample to false.
+export const contactTelegram = { url: 'https://t.me/your_telegram_username', isExample: true }
