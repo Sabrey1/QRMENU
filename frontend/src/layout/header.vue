@@ -73,12 +73,12 @@ onUnmounted(() => document.removeEventListener('pointerdown', closeOnOutsideClic
 <template>
   <header class="header" :class="{ 'header-cambodia': variant === 'cambodia' }">
     <div class="header-inner">
-      <a v-if="variant === 'cambodia' && shopName" href="#top" class="brand shop-brand">
+      <a v-if="shopName" href="#top" class="brand shop-brand">
         <img v-if="logoUrl && !logoFailed" class="shop-logo" :src="logoUrl" alt="" @error="logoFailed = true" />
         <span v-else class="shop-avatar" aria-hidden="true">{{ shopName.trim().charAt(0).toUpperCase() }}</span>
         <span class="shop-name">{{ shopName }}</span>
       </a>
-      <a v-else href="#top" class="brand">Sabrey<span> {{ $t('menu') }}</span></a>
+      <a v-else href="#top" class="brand">{{ $t('menu') }}</a>
       <details ref="dropdown" class="settings" @keydown.esc.stop.prevent="closeOnEscape">
         <summary class="settings-button" :aria-label="$t('settings')">
           <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z" stroke="currentColor" stroke-width="1.7"/><path d="M19 13.5v-3l-1.8-.6a6 6 0 0 0-.6-1.4l.8-1.7-2.1-2.1-1.7.8a6 6 0 0 0-1.4-.6L11.5 3h-3l-.6 1.9a6 6 0 0 0-1.4.6l-1.7-.8-2.1 2.1.8 1.7a6 6 0 0 0-.6 1.4L1 10.5v3l1.9.6a6 6 0 0 0 .6 1.4l-.8 1.7 2.1 2.1 1.7-.8a6 6 0 0 0 1.4.6l.6 1.9h3l.6-1.9a6 6 0 0 0 1.4-.6l1.7.8 2.1-2.1-.8-1.7a6 6 0 0 0 .6-1.4l1.9-.6Z" stroke="currentColor" stroke-width="1.7" transform="translate(2 0)"/></svg>
@@ -198,18 +198,24 @@ onUnmounted(() => document.removeEventListener('pointerdown', closeOnOutsideClic
 @media (max-width: 380px) { .header-inner { padding: 16px; gap: 8px; } }
 .brand { color: #18211b; font-size: 1.125rem; font-weight: 700; text-decoration: none; }
 .brand span { color: #637069; font-weight: 400; }
+.shop-brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.shop-logo, .shop-avatar { width: 42px; height: 42px; flex-shrink: 0; border-radius: 50%; }
+.shop-logo { object-fit: cover; }
+.brand .shop-avatar { display: grid; place-items: center; color: #285a42; background: #edf3ee; font-weight: 700; }
+.brand .shop-name { overflow: hidden; color: inherit; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
 .header-cambodia { position: relative; overflow: visible; border-bottom: 1px solid #ecd9b8; background: #fff3d8; }
 .header-cambodia .header-inner { position: relative; overflow: visible; min-height: 76px; }
 .header-cambodia .shop-brand { position: relative; z-index: 1; display: flex; align-items: center; gap: 10px; min-width: 0; }
 .header-cambodia .shop-logo, .header-cambodia .shop-avatar { width: 42px; height: 42px; flex-shrink: 0; border: 2px solid #fff; border-radius: 50%; }
 .header-cambodia .shop-logo { object-fit: cover; }
-.header-cambodia .shop-avatar { display: grid; place-items: center; color: #fff; background: #a04d31; font-weight: 700; }
-.header-cambodia .shop-name { overflow: hidden; color: #70432b; font-size: 1rem; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.header-cambodia .shop-avatar { color: #fff; background: #a04d31; }
+.header-cambodia .shop-name { color: #70432b; font-size: 1rem; }
 .header-cambodia .settings { z-index: 2; flex-shrink: 0; }
 .header-cambodia .settings-button { color: #80502e; border-color: #d8b781; background: #fffaf0; }
 html[data-theme='dark'] .header, html[data-theme='dark'] .header-cambodia { color: #edf1ed; background: #1c2521; border-color: #37443b; }
 html[data-theme='dark'] .brand, html[data-theme='dark'] .header-cambodia .shop-name { color: #f1ede1; }
 html[data-theme='dark'] .brand span { color: #b4c1b6; }
+html[data-theme='dark'] .brand .shop-name { color: #f1ede1; }
 html[data-theme='dark'] .settings-button, html[data-theme='dark'] .header-cambodia .settings-button { color: #f1ede1; background: #28332d; border-color: #526354; }
 html[data-theme='dark'] .settings-panel, html[data-theme='dark'] .settings-dialog, html[data-theme='dark'] .language-options { color: #edf1ed; background: #202b25; border-color: #435449; }
 html[data-theme='dark'] .setting-label, html[data-theme='dark'] .dialog-heading h2, html[data-theme='dark'] .login-form label, html[data-theme='dark'] .template-form label { color: #e2e9e2; }
