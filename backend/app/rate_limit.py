@@ -11,6 +11,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
 
 from app.config import settings
+from app.security import client_ip
 
 logger = logging.getLogger(__name__)
 
@@ -46,9 +47,9 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
         if request.method == "OPTIONS":
             return await call_next(request)
-        # Trust the ASGI client address only. Proxy headers must be handled by
-        # the server after explicitly configuring which proxies are trusted.
-        client = request.client.host if request.client else "unknown"
+        # Only forwarded headers from configured proxies are trusted; see
+        # app.security.client_ip.
+        client = client_ip(request)
         try:
             for group, limit in limits_for(request.url.path, request.method):
                 if not await limiter.hit(limit, group, client):

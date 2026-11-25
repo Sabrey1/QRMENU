@@ -12,6 +12,10 @@ services:
         value: "3.13.2"
       - key: SERVE_FRONTEND
         value: "false"
+      - key: ENABLE_DOCS
+        value: "false"
+      - key: TRUSTED_PROXY_IPS
+        sync: false
       - key: SECRET_KEY
         generateValue: true
       - key: DB_HOST

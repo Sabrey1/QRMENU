@@ -8,17 +8,25 @@ from app.api.v1.router import router as v1_router
 from app.api.v1.routers import public
 from app.services import public as public_service
 from app.rate_limit import RateLimitMiddleware
+from app.security import SecurityHeadersMiddleware
 
 def create_app() -> FastAPI:
-    app = FastAPI(title="QR Menu API", dependencies=[Depends(require_auth_for_writes)])
+    app = FastAPI(
+        title="QR Menu API",
+        dependencies=[Depends(require_auth_for_writes)],
+        docs_url="/docs" if settings.enable_docs else None,
+        redoc_url="/redoc" if settings.enable_docs else None,
+        openapi_url="/openapi.json" if settings.enable_docs else None,
+    )
     app.add_middleware(RateLimitMiddleware)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["https://emenu.sabrey.xyz", "http://localhost:5173"],
         allow_origin_regex=r"https://[a-z0-9-]+\.sabrey\.xyz",
-        allow_methods=["*"],
-        allow_headers=["*"],
+        allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+        allow_headers=["Authorization", "Content-Type", "Accept"],
     )
+    app.add_middleware(SecurityHeadersMiddleware)
     app.include_router(v1_router, prefix="/v1")
     # Keep existing clients working while they migrate to the versioned URLs.
     app.include_router(v1_router, include_in_schema=False)

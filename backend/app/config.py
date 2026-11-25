@@ -23,6 +23,15 @@ class Settings(BaseSettings):
     rate_limit_register_per_hour: int = Field(default=5, gt=0)
     serve_frontend: bool = False
     frontend_dist_dir: Path = BASE_DIR.parent / "frontend" / "dist"
+    enable_docs: bool = False
+    # Comma-separated CIDRs of reverse proxies whose forwarded headers are trusted.
+    # Leave empty unless the app sits behind a proxy you control.
+    trusted_proxy_ips: str = ""
+    frontend_csp: str = (
+        "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; "
+        "img-src 'self' https: data:; font-src 'self' data:; connect-src 'self'; "
+        "frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+    )
 
     model_config = SettingsConfigDict(
         env_file=BASE_DIR / ".env",
